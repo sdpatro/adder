@@ -1,5 +1,6 @@
 import Tkinter
 import random
+import sys
 
 
 class AdderTk(Tkinter.Tk):
@@ -15,35 +16,11 @@ class AdderTk(Tkinter.Tk):
         self.initialize_grid()
         self.populate()
         self.calculate()
+        self.execute()
         self.cur_i = 0
         self.cur_j = 0
 
     def initialize_grid(self):
-
-        def OnUpKey(event):
-            print("up")
-            if self.cur_i != 0 and self.selected[self.cur_i - 1][self.cur_j] == 1:
-                self.unselect(self.cur_i, self.cur_j)
-                self.cur_i -= 1
-
-        def OnDownKey(event):
-            print("down")
-            if self.cur_i != self.SIZE - 1:
-                self.cur_i += 1
-                self.select(self.cur_i, self.cur_j)
-
-        def OnLeftKey(event):
-            print("left")
-            if self.cur_j != 0 and self.selected[self.cur_i][self.cur_j - 1] == 1:
-                self.unselect(self.cur_i, self.cur_j)
-                self.cur_j -= 1
-
-        def OnRightKey(event):
-            print("right")
-            if self.cur_j != self.SIZE - 1:
-                self.cur_j += 1
-                self.select(self.cur_i, self.cur_j)
-
         self.grid()
         self.mainFrame.pack_propagate(False)
         self.slot = [[0 for x in range(self.SIZE)] for x in range(self.SIZE)]
@@ -69,15 +46,14 @@ class AdderTk(Tkinter.Tk):
         self.target_sum_label = Tkinter.Label(self.mainFrame, textvariable=self.target_sum, anchor="w", fg="blue")
         self.target_sum_label.place(relx=0.55, rely=0.97, anchor=Tkinter.CENTER)
 
+        self.help_text = Tkinter.StringVar()
+        self.help_text.set("Press DOWN or RIGHT to add. Reach the bottom right corner.")
+        self.help_label = Tkinter.Label(self.mainFrame, textvariable=self.help_text, anchor="w", fg="red")
+        self.help_label.place(relx=0.5, rely=0.05, anchor=Tkinter.CENTER)
+
         self.selected = [[0 for x in range(self.SIZE)] for x in range(self.SIZE)]
 
-        self.mainFrame.bind("<Up>", OnUpKey)
-        self.mainFrame.bind("<Down>", OnDownKey)
-        self.mainFrame.bind("<Left>", OnLeftKey)
-        self.mainFrame.bind("<Right>", OnRightKey)
-
         self.select(self.init_i, self.init_j)
-        self.select(self.final_i, self.final_j)
         self.mainFrame.pack()
         self.mainFrame.focus_set()
 
@@ -95,22 +71,62 @@ class AdderTk(Tkinter.Tk):
             next_slot = random.randrange(0, 2)
             if next_slot == 0:
                 temp_sum += self.slot_value[i][j].get()
+                print("i = " + str(i) + " j= " + str(j))
                 j += 1
             else:
                 temp_sum += self.slot_value[i][j].get()
+                print("i = " + str(i) + " j= " + str(j))
                 i += 1
 
         if i == self.SIZE - 1:
             while j != self.SIZE - 1:
-                temp_sum += self.slot_value[0][j].get()
+                temp_sum += self.slot_value[i][j].get()
+                print("i = " + str(i) + " j= " + str(j))
                 j += 1
 
         else:
             while i != self.SIZE - 1:
-                temp_sum += self.slot_value[i][0].get()
+                temp_sum += self.slot_value[i][j].get()
+                print("i = " + str(i) + " j= " + str(j))
                 i += 1
 
         self.target_sum.set(str(temp_sum))
+
+    def execute(self):
+        self.my_sum.set(self.slot_value[0][0].get())
+
+        def OnUpKey(event):
+            print("up")
+            if self.cur_i != 0 and self.selected[self.cur_i - 1][self.cur_j] == 1:
+                self.unselect(self.cur_i, self.cur_j)
+                self.cur_i -= 1
+            self.check()
+
+        def OnDownKey(event):
+            print("down")
+            if self.cur_i != self.SIZE - 1:
+                self.cur_i += 1
+                self.select(self.cur_i, self.cur_j)
+            self.check()
+
+        def OnLeftKey(event):
+            print("left")
+            if self.cur_j != 0 and self.selected[self.cur_i][self.cur_j - 1] == 1:
+                self.unselect(self.cur_i, self.cur_j)
+                self.cur_j -= 1
+            self.check()
+
+        def OnRightKey(event):
+            print("right")
+            if self.cur_j != self.SIZE - 1:
+                self.cur_j += 1
+                self.select(self.cur_i, self.cur_j)
+            self.check()
+
+        self.mainFrame.bind("<Up>", OnUpKey)
+        self.mainFrame.bind("<Down>", OnDownKey)
+        self.mainFrame.bind("<Left>", OnLeftKey)
+        self.mainFrame.bind("<Right>", OnRightKey)
 
     def select(self, a, b):
         print("a= " + str(a) + " b= " + str(b))
@@ -127,6 +143,21 @@ class AdderTk(Tkinter.Tk):
         temp_sum = self.my_sum.get()
         temp_sum -= self.slot_value[a][b].get()
         self.my_sum.set(temp_sum)
+
+    def check(self):
+        def exitgame(event):
+            sys.exit()
+
+        if (self.cur_i == self.SIZE - 1) and (
+                    self.cur_j == self.SIZE - 1) and self.my_sum.get() == self.target_sum.get():
+            print("You win")
+            for i in range(0, self.SIZE, 1):
+                for j in range(0, self.SIZE, 1):
+                    if self.selected[i][j] == 1:
+                        self.slot[i][j].config(fg="blue")
+                        self.help_text.set("Congrats. You win.")
+                        self.help_label.config(fg="blue")
+        self.mainFrame.bind("<Key>", exitgame)
 
 
 if __name__ == "__main__":
