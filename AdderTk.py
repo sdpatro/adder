@@ -5,42 +5,48 @@ import random
 class AdderTk(Tkinter.Tk):
     def __init__(self, parent):
         Tkinter.Tk.__init__(self, parent)
+        self.mainFrame = Tkinter.Frame(self, width=500, height=500, bd=3, relief=Tkinter.SUNKEN)
         self.SIZE = 5
+        self.init_i = 0
+        self.init_j = 0
+        self.final_i = self.SIZE - 1
+        self.final_j = self.SIZE - 1
         self.parent = parent
         self.initialize_grid()
         self.populate()
         self.calculate()
-
-    def initialize(self):
-        self.grid()
-
-        self.entryVariable = Tkinter.StringVar()
-        self.entry = Tkinter.Entry(self, textvariable=self.entryVariable)
-        self.entry.grid(column=0, row=0, sticky='EW')
-        self.entry.bind("<Return>", self.OnPressEnter)
-        self.entryVariable.set(u"Enter text here")
-
-        button = Tkinter.Button(self, text="u Click me !", command=self.OnButtonClick)
-        button.grid(column=1, row=0)
-
-        self.labelVariable = Tkinter.StringVar()
-        label = Tkinter.Label(self, textvariable=self.labelVariable, anchor="w", fg="white", bg="blue")
-        label.grid(column=0, row=1, columnspan=2, sticky='EW')
-        self.labelVariable.set(u"Hello!")
-
-        self.grid_columnconfigure(0, weight=1)
-        self.resizable(True, False)
-        self.update()
-        self.geometry(self.geometry())
-
-        self.entry.focus_set()
-        self.entry.selection_range(0, Tkinter.END)
+        self.cur_i = 0
+        self.cur_j = 0
 
     def initialize_grid(self):
+
+        def OnUpKey(event):
+            print("up")
+            if self.cur_i != 0 and self.selected[self.cur_i - 1][self.cur_j] == 1:
+                self.unselect(self.cur_i, self.cur_j)
+                self.cur_i -= 1
+
+        def OnDownKey(event):
+            print("down")
+            if self.cur_i != self.SIZE - 1:
+                self.cur_i += 1
+                self.select(self.cur_i, self.cur_j)
+
+        def OnLeftKey(event):
+            print("left")
+            if self.cur_j != 0 and self.selected[self.cur_i][self.cur_j - 1] == 1:
+                self.unselect(self.cur_i, self.cur_j)
+                self.cur_j -= 1
+
+        def OnRightKey(event):
+            print("right")
+            if self.cur_j != self.SIZE - 1:
+                self.cur_j += 1
+                self.select(self.cur_i, self.cur_j)
+
         self.grid()
-        self.mainFrame = Tkinter.Frame(self, width=500, height=500, bd=3, relief=Tkinter.SUNKEN)
         self.mainFrame.pack_propagate(False)
-        self.slot = [[0 for x in range(10)] for x in range(10)]
+        self.slot = [[0 for x in range(self.SIZE)] for x in range(self.SIZE)]
 
         self.slot_value = [[0 for x in range(self.SIZE)] for x in range(10)]
         for i in range(0, self.SIZE, 1):
@@ -56,12 +62,24 @@ class AdderTk(Tkinter.Tk):
                 self.slot[i][j].place(relx=grad * j + grad, rely=grad * i + grad, anchor=Tkinter.CENTER)
 
         self.my_sum = Tkinter.IntVar()
-        self.result_sum = Tkinter.IntVar()
         self.my_sum_label = Tkinter.Label(self.mainFrame, textvariable=self.my_sum, anchor="w", fg="red")
         self.my_sum_label.place(relx=0.45, rely=0.97, anchor=Tkinter.CENTER)
-        self.result_sum_label = Tkinter.Label(self.mainFrame, textvariable=self.result_sum, anchor="w", fg="blue")
-        self.result_sum_label.place(relx=0.55, rely=0.97, anchor=Tkinter.CENTER)
+
+        self.target_sum = Tkinter.IntVar()
+        self.target_sum_label = Tkinter.Label(self.mainFrame, textvariable=self.target_sum, anchor="w", fg="blue")
+        self.target_sum_label.place(relx=0.55, rely=0.97, anchor=Tkinter.CENTER)
+
+        self.selected = [[0 for x in range(self.SIZE)] for x in range(self.SIZE)]
+
+        self.mainFrame.bind("<Up>", OnUpKey)
+        self.mainFrame.bind("<Down>", OnDownKey)
+        self.mainFrame.bind("<Left>", OnLeftKey)
+        self.mainFrame.bind("<Right>", OnRightKey)
+
+        self.select(self.init_i, self.init_j)
+        self.select(self.final_i, self.final_j)
         self.mainFrame.pack()
+        self.mainFrame.focus_set()
 
     def populate(self):
         for i in range(0, self.SIZE, 1):
@@ -92,18 +110,23 @@ class AdderTk(Tkinter.Tk):
                 temp_sum += self.slot_value[i][0].get()
                 i += 1
 
-        print("temp= "+str(temp_sum))
+        self.target_sum.set(str(temp_sum))
 
+    def select(self, a, b):
+        print("a= " + str(a) + " b= " + str(b))
+        self.slot[a][b].config(fg="red")
+        self.selected[a][b] = 1
+        temp_sum = self.my_sum.get()
+        temp_sum += self.slot_value[a][b].get()
+        self.my_sum.set(temp_sum)
 
-    def OnButtonClick(self):
-        self.labelVariable.set(self.entryVariable.get() + "(You clicked the button)")
-        self.entry.focus_set()
-        self.entry.selection_range(0, Tkinter.END)
-
-    def OnPressEnter(self, event):
-        self.labelVariable.set(self.entryVariable.get() + "(You pressed Enter)")
-        self.entry.focus_set()
-        self.entry.selection_range(0, Tkinter.END)
+    def unselect(self, a, b):
+        print("a= " + str(a) + " b= " + str(b))
+        self.slot[a][b].config(fg="black")
+        self.selected[a][b] = 0
+        temp_sum = self.my_sum.get()
+        temp_sum -= self.slot_value[a][b].get()
+        self.my_sum.set(temp_sum)
 
 
 if __name__ == "__main__":
