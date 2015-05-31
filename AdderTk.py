@@ -7,7 +7,7 @@ class AdderTk(Tkinter.Tk):
     def __init__(self, parent):
         Tkinter.Tk.__init__(self, parent)
         self.mainFrame = Tkinter.Frame(self, width=500, height=500, bd=3, relief=Tkinter.SUNKEN)
-        self.SIZE = 5
+        self.SIZE = 4
         self.init_i = 0
         self.init_j = 0
         self.final_i = self.SIZE - 1
@@ -90,6 +90,7 @@ class AdderTk(Tkinter.Tk):
                 print("i = " + str(i) + " j= " + str(j))
                 i += 1
 
+        temp_sum += self.slot_value[i][j].get()
         self.target_sum.set(str(temp_sum))
 
     def execute(self):
@@ -157,8 +158,7 @@ class AdderTk(Tkinter.Tk):
                         self.slot[i][j].config(fg="blue")
                         self.help_text.set("Congrats. You win.")
                         self.help_label.config(fg="blue")
-        self.mainFrame.bind("<Key>", exitgame)
-
+            self.mainFrame.bind("<Key>", exitgame)
 
 if __name__ == "__main__":
     app = AdderTk(None)
